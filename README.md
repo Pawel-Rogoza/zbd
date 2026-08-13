@@ -44,6 +44,21 @@ Po publikacji sprawdź:
 
 Jeżeli hosting blokuje `mail()`, formularz należy przełączyć na uwierzytelnione SMTP. Nie zapisuj hasła pocztowego w repozytorium.
 
+## Aktualizacja na VPS
+
+Skrypt `deploy-zbd` wykonuje backup konfiguracji i treści, pobiera `main`, robi bezpieczny fast-forward, restartuje PHP-FPM oraz przeładowuje Nginx:
+
+```bash
+sudo install -m 755 deploy-zbd /usr/local/sbin/deploy-zbd
+sudo deploy-zbd
+```
+
+Jeśli usługa PHP-FPM ma niestandardową nazwę:
+
+```bash
+sudo ZBD_PHP_FPM_SERVICE=php-fpm.service deploy-zbd
+```
+
 ## Edycja treści
 
 Panel `/admin/` zapisuje teksty do `data/content.json`. Frontend pobiera ten plik po załadowaniu strony, zachowując jednocześnie domyślne treści HTML dla SEO i na wypadek błędu sieciowego.

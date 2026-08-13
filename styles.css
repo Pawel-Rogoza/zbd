@@ -888,20 +888,10 @@ h3 {
 }
 
 .video-card p {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
   margin: 16px 4px 0;
   color: var(--navy);
   font-size: 15px;
   font-weight: 800;
-}
-
-.video-card p span {
-  flex: 0 0 auto;
-  color: var(--red);
-  font: 500 10px "DM Mono", monospace;
-  letter-spacing: .12em;
 }
 
 .services {

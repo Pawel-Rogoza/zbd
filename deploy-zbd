@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+APP_DIR="${ZBD_APP_DIR:-/home/zbd}"
+BRANCH="${ZBD_BRANCH:-main}"
+PHP_FPM_SERVICE="${ZBD_PHP_FPM_SERVICE:-}"
+BACKUP_DIR="${ZBD_BACKUP_DIR:-/var/backups/zbd}"
+
+log() { printf '[deploy-zbd] %s\n' "$*"; }
+die() { printf '[deploy-zbd] ERROR: %s\n' "$*" >&2; exit 1; }
+
+if [[ ${EUID} -ne 0 ]]; then
+  exec sudo env \
+    ZBD_APP_DIR="$APP_DIR" \
+    ZBD_BRANCH="$BRANCH" \
+    ZBD_PHP_FPM_SERVICE="$PHP_FPM_SERVICE" \
+    ZBD_BACKUP_DIR="$BACKUP_DIR" \
+    "$0" "$@"
+fi
+
+command -v git >/dev/null || die 'Brak git.'
+command -v nginx >/dev/null || die 'Brak nginx.'
+command -v systemctl >/dev/null || die 'Brak systemctl.'
+id zbd >/dev/null 2>&1 || die 'Użytkownik zbd nie istnieje.'
+[[ -d "$APP_DIR/.git" ]] || die "Brak repozytorium Git w $APP_DIR."
+[[ -f "$APP_DIR/config.php" ]] || die "Brak $APP_DIR/config.php — utwórz go z config.example.php."
+
+cd "$APP_DIR"
+
+if [[ -n "$(git status --porcelain --untracked-files=all | grep -Ev '^\?\? (config\.php|assets/images/uploads/)' || true)" ]]; then
+  git status --short
+  die 'Repozytorium ma lokalne zmiany. Zapisz je lub wyczyść przed wdrożeniem.'
+fi
+
+if [[ -f data/content.json || -f config.php || -d assets/images/uploads ]]; then
+  install -d -m 0750 "$BACKUP_DIR"
+  backup_file="$BACKUP_DIR/zbd-$(date +%Y%m%d-%H%M%S).tgz"
+  tar -czf "$backup_file" \
+    --ignore-failed-read \
+    -C "$APP_DIR" config.php data/content.json assets/images/uploads
+  chmod 0600 "$backup_file"
+  log "Backup: $backup_file"
+fi
+
+log "Pobieram origin/$BRANCH..."
+git fetch --prune origin "$BRANCH"
+git merge --ff-only "origin/$BRANCH" || die 'Fast-forward nie jest możliwy. Nie nadpisuję lokalnych zmian.'
+
+install -d -o zbd -g zbd -m 0770 "$APP_DIR/assets/images/uploads"
+chown zbd:zbd "$APP_DIR/data/content.json" 2>/dev/null || true
+chmod 0660 "$APP_DIR/data/content.json" 2>/dev/null || true
+
+if [[ -z "$PHP_FPM_SERVICE" ]]; then
+  PHP_FPM_SERVICE="$(systemctl list-units --type=service --all --no-legend \
+    | awk '$1 == "php-fpm.service" || $1 ~ /^php[0-9.]+-fpm\.service$/ { print $1; exit }')"
+fi
+[[ -n "$PHP_FPM_SERVICE" ]] || die 'Nie znaleziono usługi PHP-FPM. Ustaw ZBD_PHP_FPM_SERVICE, np. php-fpm.service.'
+
+log "Restartuję $PHP_FPM_SERVICE..."
+systemctl restart "$PHP_FPM_SERVICE"
+nginx -t
+systemctl reload nginx
+
+log "Gotowe: $(git rev-parse --short HEAD)"
