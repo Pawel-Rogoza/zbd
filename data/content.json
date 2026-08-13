@@ -1,0 +1,49 @@
+{
+  "hero": {
+    "title": "Suchy budynek.\nSolidna robota.",
+    "kicker": "Osuszanie murów metodą cięcia PRINZ",
+    "description": "Wykonujemy nową izolację poziomą, która zatrzymuje kapilarne podciąganie wilgoci."
+  },
+  "moisture": {
+    "title": "Wilgoć w murach?\nZatrzymaj ją u źródła.",
+    "description_1": "Gdy izolacji poziomej brakuje lub jest uszkodzona, woda może przemieszczać się kapilarnie w górę muru.",
+    "description_2": "Nowa warstwa izolacji poziomej tworzy fizyczną barierę, która odcina drogę wilgoci kapilarnej."
+  },
+  "method": {
+    "title": "Jak działa metoda cięcia PRINZ?",
+    "description": "Pięć kolejnych etapów tworzy nową izolację poziomą w istniejącym murze."
+  },
+  "benefits": {
+    "title": "Fizyczna bariera. Czytelna zasada działania."
+  },
+  "practice": {
+    "title": "Technologia, którą widać na budowie.",
+    "description": "Rozpoznanie problemu, odsłonięcie muru i wykonanie nowej warstwy izolacji to kolejne części jednego procesu.",
+    "items": [
+      {
+        "label": "ROZPOZNANIE",
+        "title": "Zawilgocenie murów przyziemia",
+        "alt": "Budynek z widocznym zawilgoceniem murów przyziemia",
+        "image": "assets/images/pdf-p3-02-1440.webp"
+      },
+      {
+        "label": "IZOLACJA",
+        "title": "Wprowadzenie płyty PRINZ",
+        "alt": "Wprowadzanie płyty izolacyjnej do ceglanego muru",
+        "image": "assets/images/pdf-p4-03-960.webp"
+      }
+    ]
+  },
+  "services": {
+    "title": "Nie tylko osuszanie.",
+    "description": "ZBD Budownictwo wykonuje również kompleksowe prace budowlane — od remontów kapitalnych i rozbiórek po renowacje zabytków, dachy i elewacje."
+  },
+  "partner": {
+    "title": "ZBD Budownictwo jest firmą partnerską PRINZ Polska.",
+    "description": "Specjalizujemy się w osuszaniu murów metodą cięcia PRINZ. Realizujemy także remonty kapitalne, rozbiórki, dachy, elewacje i renowacje obiektów zabytkowych."
+  },
+  "contact": {
+    "title": "Masz problem z wilgocią?",
+    "description": "Opisz budynek i zostaw kontakt. Wrócimy z informacją, jakie dane będą potrzebne do ustalenia oględzin."
+  }
+}
