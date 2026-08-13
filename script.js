@@ -51,24 +51,10 @@ if (mobileContact && contactSection && 'IntersectionObserver' in window) {
 
 const form = document.querySelector('[data-contact-form]');
 const formStarted = form?.querySelector('[name="form_started"]');
-const fileInput = form?.querySelector('[data-file-input]');
-const fileLabel = form?.querySelector('[data-file-label]');
 
 if (formStarted) {
   formStarted.value = String(Math.floor(Date.now() / 1000));
 }
-
-fileInput?.addEventListener('change', () => {
-  const files = [...fileInput.files];
-  if (files.length > 3) {
-    fileInput.value = '';
-    fileLabel.textContent = 'Możesz dodać maksymalnie 3 zdjęcia';
-    return;
-  }
-  fileLabel.textContent = files.length
-    ? `Wybrano: ${files.map((file) => file.name).join(', ')}`
-    : 'Dodaj zdjęcia';
-});
 
 const contactStatus = new URLSearchParams(window.location.search).get('contact');
 const contactMessage = document.querySelector('.form-message');

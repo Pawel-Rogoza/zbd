@@ -837,6 +837,58 @@ h3 {
   text-align: right;
 }
 
+.videos {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+
+.video-card {
+  margin: 0;
+  padding: 14px 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--mist);
+  box-shadow: 0 10px 30px rgb(8 37 66 / 5%);
+}
+
+.video-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  background: var(--navy);
+}
+
+.video-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-card p {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 16px 4px 0;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.video-card p span {
+  flex: 0 0 auto;
+  color: var(--red);
+  font: 500 10px "DM Mono", monospace;
+  letter-spacing: .12em;
+}
+
 .services {
   background: var(--mist);
 }
@@ -1015,8 +1067,7 @@ h3 {
   gap: 16px;
 }
 
-.contact-form label > span,
-.file-field > span {
+.contact-form label > span {
   display: block;
   margin-bottom: 7px;
   color: var(--navy);
@@ -1058,32 +1109,6 @@ h3 {
   height: 1px !important;
   opacity: 0 !important;
   pointer-events: none !important;
-}
-
-.file-field {
-  position: relative;
-  padding: 17px 19px;
-  border: 1px dashed #aab8c3;
-  border-radius: 3px;
-  background: #fff;
-  cursor: pointer;
-}
-
-.file-field input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.file-field small {
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.file-field strong {
-  color: var(--red);
-  font-size: 13px;
 }
 
 .consent {
@@ -1321,6 +1346,7 @@ h3 {
 
   .diagram-grid,
   .practice-grid,
+  .video-grid,
   .contact-grid {
     grid-template-columns: 1fr;
   }
