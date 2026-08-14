@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+umask 027
 
 APP_DIR="${ZBD_APP_DIR:-/home/zbd}"
 BRANCH="${ZBD_BRANCH:-main}"
@@ -21,13 +22,20 @@ fi
 command -v git >/dev/null || die 'Brak git.'
 command -v nginx >/dev/null || die 'Brak nginx.'
 command -v systemctl >/dev/null || die 'Brak systemctl.'
+command -v php >/dev/null || die 'Brak PHP CLI.'
 id zbd >/dev/null 2>&1 || die 'Użytkownik zbd nie istnieje.'
 [[ -d "$APP_DIR/.git" ]] || die "Brak repozytorium Git w $APP_DIR."
 [[ -f "$APP_DIR/config.php" ]] || die "Brak $APP_DIR/config.php — utwórz go z config.example.php."
 
+php -r '$c = require $argv[1]; foreach (["site_url", "contact_email", "from_email"] as $k) { $valid = $k === "site_url" ? filter_var($c[$k] ?? "", FILTER_VALIDATE_URL) : filter_var($c[$k] ?? "", FILTER_VALIDATE_EMAIL); if (!$valid) { fwrite(STDERR, "Nieprawidłowa konfiguracja: $k\\n"); exit(1); } } if (strlen((string) ($c["app_secret"] ?? "")) < 32) { fwrite(STDERR, "Brak app_secret.\\n"); exit(1); } if (($c["mail_transport"] ?? "smtp") === "smtp" && (!filter_var($c["smtp_host"] ?? "", FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) || ($c["smtp_username"] ?? "") === "" || ($c["smtp_password"] ?? "") === "")) { fwrite(STDERR, "Niepełna konfiguracja SMTP.\\n"); exit(1); } if (($c["admin_enabled"] ?? false) === true && ($c["admin_password_hash"] ?? "") === "") { fwrite(STDERR, "Panel włączony bez hasła.\\n"); exit(1); }' "$APP_DIR/config.php" || die 'Konfiguracja config.php jest nieprawidłowa.'
+
+if php -r '$c = require $argv[1]; exit(($c["mail_transport"] ?? "smtp") === "smtp" ? 0 : 1);' "$APP_DIR/config.php"; then
+  [[ -f "$APP_DIR/vendor/autoload.php" ]] || die 'Brak vendor/autoload.php — uruchom composer install --no-dev.'
+fi
+
 cd "$APP_DIR"
 
-if [[ -n "$(git status --porcelain --untracked-files=all | grep -Ev '^\?\? (config\.php|assets/images/uploads/)' || true)" ]]; then
+if [[ -n "$(git status --porcelain --untracked-files=all | grep -Ev '^\?\? (config\.php|assets/images/uploads/)' | grep -Ev '^( M|M )data/content\.json$' || true)" ]]; then
   git status --short
   die 'Repozytorium ma lokalne zmiany. Zapisz je lub wyczyść przed wdrożeniem.'
 fi
@@ -46,6 +54,11 @@ log "Pobieram origin/$BRANCH..."
 git fetch --prune origin "$BRANCH"
 git merge --ff-only "origin/$BRANCH" || die 'Fast-forward nie jest możliwy. Nie nadpisuję lokalnych zmian.'
 
+if [[ -n "${backup_file:-}" ]]; then
+  tar -xzf "$backup_file" -C "$APP_DIR"
+  log 'Przywrócono lokalną konfigurację, treść panelu i uploady.'
+fi
+
 install -d -o zbd -g zbd -m 0770 "$APP_DIR/assets/images/uploads"
 chown zbd:zbd "$APP_DIR/data/content.json" 2>/dev/null || true
 chmod 0660 "$APP_DIR/data/content.json" 2>/dev/null || true
@@ -62,3 +75,4 @@ nginx -t
 systemctl reload nginx
 
 log "Gotowe: $(git rev-parse --short HEAD)"
+

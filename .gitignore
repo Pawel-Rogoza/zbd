@@ -1,3 +1,10 @@
 config.php
+vendor/
 tmp/
 assets/images/uploads/
+# Duże źródła PNG nie są częścią paczki produkcyjnej; zachowaj je poza repozytorium.
+assets/images/*.png
+data/content.json.bak
+data/archive/*
+!data/archive/.htaccess
+

@@ -3,3 +3,10 @@ Allow: /
 
 Disallow: /admin/
 Disallow: /config.php
+Disallow: /config.example.php
+Disallow: /README.md
+Disallow: /deploy-zbd
+Disallow: /sitemap.php
+
+Sitemap: https://zbd.pawelrogoza.pl/sitemap.xml
+
