@@ -61,8 +61,17 @@ if [[ -n "${backup_file:-}" ]]; then
   log 'Przywrócono lokalną konfigurację, treść panelu i uploady.'
 fi
 
-install -d -o zbd -g zbd -m 0770 "$APP_DIR/assets/images/uploads"
-chown zbd:zbd "$APP_DIR/data/content.json" 2>/dev/null || true
+FPM_POOL_USER="$(ps -eo user,args | awk '$0 ~ /php-fpm: pool/ && $1 != "root" { print $1; exit }')"
+if [[ -z "$FPM_POOL_USER" ]]; then
+  log 'Nie wykryto użytkownika PHP-FPM; używam grupy zbd dla plików zapisywalnych.'
+  FPM_POOL_GROUP='zbd'
+else
+  FPM_POOL_GROUP="$(id -gn "$FPM_POOL_USER" 2>/dev/null || printf '%s' "$FPM_POOL_USER")"
+  log "Użytkownik PHP-FPM: $FPM_POOL_USER:$FPM_POOL_GROUP"
+fi
+
+install -d -o zbd -g "$FPM_POOL_GROUP" -m 0770 "$APP_DIR/data" "$APP_DIR/assets/images/uploads"
+chown zbd:"$FPM_POOL_GROUP" "$APP_DIR/data/content.json" 2>/dev/null || true
 chmod 0660 "$APP_DIR/data/content.json" 2>/dev/null || true
 
 if [[ -z "$PHP_FPM_SERVICE" ]]; then
