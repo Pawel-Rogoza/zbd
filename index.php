@@ -146,7 +146,14 @@ function renderContactDetails(array $config): string
     $area = trim((string) ($config['service_area'] ?? ''));
     $responseTime = trim((string) ($config['response_time'] ?? ''));
     if ($phone !== '' && preg_match('/^[+0-9 ()\-]{7,24}$/', $phone)) {
-        $parts[] = '<p><span>Telefon</span><a href="tel:' . escapeHtml((string) preg_replace('/[^+0-9]/', '', $phone)) . '">' . escapeHtml($phone) . '</a></p>';
+        $digits = (string) preg_replace('/\D+/', '', $phone);
+        $displayPhone = $phone;
+        if (strlen($digits) === 11 && str_starts_with($digits, '48')) {
+            $displayPhone = '+48 ' . substr($digits, 2, 3) . ' ' . substr($digits, 5, 3) . ' ' . substr($digits, 8, 3);
+        } elseif (strlen($digits) === 9) {
+            $displayPhone = substr($digits, 0, 3) . ' ' . substr($digits, 3, 3) . ' ' . substr($digits, 6, 3);
+        }
+        $parts[] = '<p><span>Telefon</span><a href="tel:' . escapeHtml((string) preg_replace('/[^+0-9]/', '', $phone)) . '">' . escapeHtml($displayPhone) . '</a></p>';
     }
     if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $parts[] = '<p><span>E-mail</span><a href="mailto:' . escapeHtml($email) . '">' . escapeHtml($email) . '</a></p>';
