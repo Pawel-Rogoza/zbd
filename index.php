@@ -259,7 +259,8 @@ $mobilePhone = renderMobilePhone($config);
 if ($mobilePhone !== '') {
     $html = preg_replace('/class="mobile-contact"/', 'class="mobile-contact mobile-form"', $html, 1) ?? $html;
     $mobileAnchor = '<a class="mobile-contact mobile-form" href="#kontakt">Umów oględziny <svg class="icon"><use href="#icon-arrow" /></svg></a>';
-    $html = str_replace($mobileAnchor, $mobileAnchor . $mobilePhone, $html, 1);
+    $replaceCount = 1;
+    $html = str_replace($mobileAnchor, $mobileAnchor . $mobilePhone, $html, $replaceCount);
 }
 
 if (filter_var($siteUrl, FILTER_VALIDATE_URL)) {
