@@ -79,5 +79,5 @@ Projekt celowo nie zawiera wymyślonych danych. Przed finalnym uruchomieniem trz
 
 Po otrzymaniu danych należy zaktualizować stopkę, informację o prywatności oraz Schema.org.
 
-Przed produkcją trzeba jeszcze zatwierdzić przez klienta wartości `contact_phone`, `service_area` i `response_time` oraz skonfigurować rekordy SPF, DKIM i DMARC dla domeny nadawcy. Bez tych danych strona nie publikuje telefonu ani obszaru działania.
+Przed produkcją trzeba jeszcze zatwierdzić przez klienta wartości `service_area` i `response_time` oraz skonfigurować rekordy SPF, DKIM i DMARC dla domeny nadawcy. Telefon i adres e-mail są skonfigurowane w `config.php` na podstawie danych klienta.
 
