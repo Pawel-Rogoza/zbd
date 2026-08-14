@@ -61,6 +61,25 @@ if [[ -n "${backup_file:-}" ]]; then
   log 'Przywrócono lokalną konfigurację, treść panelu i uploady.'
 fi
 
+# Git działa jako root, a umask 027 tworzy zaktualizowane pliki jako root:root 0640.
+# Normalizuj prawa plików śledzonych, aby Nginx i PHP-FPM mogły je odczytać.
+while IFS= read -r -d '' tracked_file; do
+  [[ -f "$tracked_file" ]] || continue
+  chown zbd:zbd "$tracked_file"
+  if git ls-files --stage -- "$tracked_file" | grep -q '^100755 '; then
+    chmod 0755 "$tracked_file"
+  else
+    chmod 0644 "$tracked_file"
+  fi
+done < <(git ls-files -z)
+
+find "$APP_DIR" -type d \
+  -not -path "$APP_DIR/.git*" \
+  -not -path "$APP_DIR/data*" \
+  -not -path "$APP_DIR/assets/images/uploads*" \
+  -exec chown zbd:zbd {} + \
+  -exec chmod 0755 {} +
+
 FPM_POOL_USER="$(ps -eo user,args | awk '$0 ~ /php-fpm: pool/ && $1 != "root" { print $1; exit }')"
 if [[ -z "$FPM_POOL_USER" ]]; then
   log 'Nie wykryto użytkownika PHP-FPM; używam grupy zbd dla plików zapisywalnych.'
@@ -71,6 +90,8 @@ else
 fi
 
 install -d -o zbd -g "$FPM_POOL_GROUP" -m 0770 "$APP_DIR/data" "$APP_DIR/assets/images/uploads"
+chown zbd:"$FPM_POOL_GROUP" "$APP_DIR/config.php"
+chmod 0640 "$APP_DIR/config.php"
 chown zbd:"$FPM_POOL_GROUP" "$APP_DIR/data/content.json" 2>/dev/null || true
 chmod 0660 "$APP_DIR/data/content.json" 2>/dev/null || true
 
