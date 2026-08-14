@@ -1,4 +1,8 @@
 {
+  "seo": {
+    "title": "ZBD Budownictwo | Osuszanie murów metodą PRINZ",
+    "description": "ZBD Budownictwo wykonuje osuszanie murów metodą cięcia PRINZ oraz kompleksowe prace budowlane."
+  },
   "hero": {
     "title": "Suchy budynek.\nSolidna robota.",
     "kicker": "Osuszanie murów metodą cięcia PRINZ",
@@ -7,7 +11,7 @@
   "moisture": {
     "title": "Wilgoć w murach?\nZatrzymaj ją u źródła.",
     "description_1": "Gdy izolacji poziomej brakuje lub jest uszkodzona, woda może przemieszczać się kapilarnie w górę muru.",
-    "description_2": "Nowa warstwa izolacji poziomej tworzy fizyczną barierę, która odcina drogę wilgoci kapilarnej."
+    "description_2": "Nowa warstwa izolacji poziomej tworzy fizyczną barierę, która odcina drogę wilgoci kapilarnej. Nie usuwa innych źródeł wilgoci ani nie oznacza natychmiastowego wyschnięcia muru — potrzebne jest rozpoznanie przyczyn."
   },
   "method": {
     "title": "Jak działa metoda cięcia PRINZ?",
@@ -47,3 +51,4 @@
     "description": "Opisz budynek i zostaw kontakt. Wrócimy z informacją, jakie dane będą potrzebne do ustalenia oględzin."
   }
 }
+

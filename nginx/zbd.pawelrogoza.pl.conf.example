@@ -1,0 +1,120 @@
+# Ten plik jest włączany w kontekście http przez /etc/nginx/conf.d/.
+# Lista proxy musi być aktualizowana z oficjalnych zakresów Cloudflare.
+limit_req_zone $binary_remote_addr zone=zbd_contact:10m rate=1r/m;
+limit_req_status 429;
+
+gzip on;
+gzip_min_length 1024;
+gzip_types text/plain text/css text/html application/javascript application/json image/svg+xml;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name zbd.pawelrogoza.pl;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name zbd.pawelrogoza.pl;
+
+    root /home/zbd;
+    index index.php;
+
+    real_ip_header CF-Connecting-IP;
+    real_ip_recursive on;
+    set_real_ip_from 173.245.48.0/20;
+    set_real_ip_from 103.21.244.0/22;
+    set_real_ip_from 103.22.200.0/22;
+    set_real_ip_from 103.31.4.0/22;
+    set_real_ip_from 141.101.64.0/18;
+    set_real_ip_from 108.162.192.0/18;
+    set_real_ip_from 190.93.240.0/20;
+    set_real_ip_from 188.114.96.0/20;
+    set_real_ip_from 197.234.240.0/22;
+    set_real_ip_from 198.41.128.0/17;
+    set_real_ip_from 162.158.0.0/15;
+    set_real_ip_from 104.16.0.0/13;
+    set_real_ip_from 104.24.0.0/14;
+    set_real_ip_from 172.64.0.0/13;
+    set_real_ip_from 131.0.72.0/22;
+    set_real_ip_from 2400:cb00::/32;
+    set_real_ip_from 2606:4700::/32;
+    set_real_ip_from 2803:f800::/32;
+    set_real_ip_from 2405:b500::/32;
+    set_real_ip_from 2405:8100::/32;
+    set_real_ip_from 2a06:98c0::/29;
+    set_real_ip_from 2c0f:f248::/32;
+
+    # Uzupełnij ścieżki zgodnie z konfiguracją certbota na VPS.
+    ssl_certificate /etc/letsencrypt/live/zbd.pawelrogoza.pl/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/zbd.pawelrogoza.pl/privkey.pem;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src https://www.youtube-nocookie.com" always;
+
+    location = /index.html { return 301 /; }
+    location = /config.php { deny all; }
+    location = /config.example.php { deny all; }
+    location = /README.md { deny all; }
+    location = /deploy-zbd { deny all; }
+    location = /sitemap.php { internal; }
+    location ~ (^|/)\.git(?:/|$) { deny all; }
+    location ~ (^|/)\.env(?:\.|$) { deny all; }
+
+    location = /sitemap.xml {
+        rewrite ^ /sitemap.php last;
+    }
+
+    location ^~ /data/ { internal; }
+
+    location = /kontakt.php {
+        limit_req zone=zbd_contact burst=2 nodelay;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param HTTPS on;
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+    }
+
+    location /admin/ {
+        add_header Cache-Control "no-store" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+        add_header Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        try_files $uri $uri/ /admin/index.php?$query_string;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param HTTPS on;
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+    }
+
+    location ~* \.(?:css|js|webp|png|jpe?g|svg|woff2|webmanifest)$ {
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable";
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+        add_header Content-Security-Policy "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src https://www.youtube-nocookie.com" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        try_files $uri =404;
+    }
+}
+
