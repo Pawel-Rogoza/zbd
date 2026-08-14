@@ -4,11 +4,11 @@ return [
     // Losowy sekret >= 32 znaków, np. `php -r "echo bin2hex(random_bytes(32));"`.
     'app_secret' => '',
     // Ustaw prawdziwy adres, na który mają trafiać zapytania z formularza.
-    'contact_email' => 'biuro@zbd.pawelrogoza.pl',
+    'contact_email' => 'zbd@plechowski.pl',
     // Adres nadawcy musi istnieć w tej samej domenie i mieć poprawne SPF/DKIM.
-    'from_email' => 'formularz@zbd.pawelrogoza.pl',
+    'from_email' => 'zbd@plechowski.pl',
     // DO_UZUPELNIENIA: tylko po zatwierdzeniu przez klienta; puste pola nie są publikowane.
-    'contact_phone' => '',
+    'contact_phone' => '+48509384181',
     'service_area' => '',
     'response_time' => '',
     'logo_url' => 'assets/favicon.svg',
