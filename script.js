@@ -146,3 +146,16 @@ document.querySelectorAll('[data-video]').forEach((frame) => {
   }, { once: true });
 });
 
+document.querySelectorAll('[data-before-after]').forEach((comparison) => {
+  const range = comparison.querySelector('.comparison-range');
+  if (!range) return;
+
+  const updateComparison = () => {
+    comparison.style.setProperty('--position', `${range.value}%`);
+    range.setAttribute('aria-valuetext', `${range.value}% zdjęcia przed remontem`);
+  };
+
+  range.addEventListener('input', updateComparison);
+  updateComparison();
+});
+
