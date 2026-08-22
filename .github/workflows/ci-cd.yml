@@ -1,0 +1,87 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zbd-production
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: Validate application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer configuration
+        run: composer validate --strict --no-check-lock
+
+      - name: Install production dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress
+
+      - name: Check PHP syntax
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Check deployment script syntax
+        run: bash -n deploy-zbd
+
+      - name: Ensure production secrets are not tracked
+        run: test ! -e config.php
+
+  deploy:
+    name: Deploy production
+    needs: ci
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate deployment secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.ZBD_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.ZBD_DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.ZBD_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST_KEY: ${{ secrets.ZBD_DEPLOY_HOST_KEY }}
+        run: |
+          test -n "$DEPLOY_HOST" || { echo 'Missing secret: ZBD_DEPLOY_HOST'; exit 1; }
+          test -n "$DEPLOY_USER" || { echo 'Missing secret: ZBD_DEPLOY_USER'; exit 1; }
+          test -n "$DEPLOY_SSH_KEY" || { echo 'Missing secret: ZBD_DEPLOY_SSH_KEY'; exit 1; }
+          test -n "$DEPLOY_HOST_KEY" || { echo 'Missing secret: ZBD_DEPLOY_HOST_KEY'; exit 1; }
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.ZBD_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST_KEY: ${{ secrets.ZBD_DEPLOY_HOST_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy current main on VPS
+        env:
+          DEPLOY_HOST: ${{ secrets.ZBD_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.ZBD_DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.ZBD_DEPLOY_PORT }}
+        run: |
+          port="${DEPLOY_PORT:-22}"
+          ssh -p "$port" -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" \
+            'sudo /usr/local/sbin/deploy-zbd'
+
+      - name: Verify production endpoint
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 5 https://zbd.pawelrogoza.pl/ >/dev/null
