@@ -1,4 +1,7 @@
 {
+  "name": "pawel-rogoza/zbd",
+  "description": "Production website for ZBD Budownictwo",
+  "license": "proprietary",
   "require": {
     "phpmailer/phpmailer": "^6.9"
   }
