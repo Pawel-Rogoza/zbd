@@ -61,6 +61,24 @@ Jeśli usługa PHP-FPM ma niestandardową nazwę:
 sudo ZBD_PHP_FPM_SERVICE=php-fpm.service deploy-zbd
 ```
 
+## CI/CD przez GitHub Actions
+
+Workflow `.github/workflows/ci-cd.yml` sprawdza konfigurację Composer, instaluje
+zależności produkcyjne, waliduje składnię PHP i skrypt `deploy-zbd`. Po udanym CI
+dla `main` łączy się z VPS przez SSH, uruchamia
+`sudo /usr/local/sbin/deploy-zbd` i sprawdza publiczny adres strony.
+
+W środowisku GitHub `production` należy ustawić sekrety:
+
+- `ZBD_DEPLOY_HOST` — adres VPS;
+- `ZBD_DEPLOY_USER` — użytkownik SSH uprawniony do uruchomienia skryptu przez `sudo`;
+- `ZBD_DEPLOY_SSH_KEY` — prywatny klucz Ed25519;
+- `ZBD_DEPLOY_HOST_KEY` — pełny, wcześniej zweryfikowany wpis `known_hosts` serwera;
+- `ZBD_DEPLOY_PORT` — opcjonalny port SSH, domyślnie `22`.
+
+Konto wdrożeniowe powinno mieć w `sudoers` prawo bez hasła wyłącznie do
+`/usr/local/sbin/deploy-zbd`.
+
 ## Edycja treści
 
 Panel `/admin/` zapisuje teksty do `data/content.json` atomowo, po utworzeniu kopii `content.json.bak`. `index.php` renderuje treść po stronie serwera, więc HTML bez JavaScript pokazuje aktualną wersję; JSON nie jest publicznym endpointem.
